@@ -1,0 +1,121 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+```{r}
+trainFile <- "titanic/train.csv"
+trainDataset <- read.csv(trainFile)
+trainDataset$Pclass <- as.factor(trainDataset$Pclass)
+trainDataset$Survived <- as.factor(trainDataset$Survived)
+trainDataset
+
+testFile <- "titanic/test.csv"
+testDataset <- read.csv(testFile)
+testDataset$Pclass <- as.factor(testDataset$Pclass)
+testDataset
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(rpart)
+library(caret)
+library(rpart.plot)
+library(rattle)
+```
+
+```{r}
+str(trainDataset)
+```
+```{r}
+summary(trainDataset)
+```
+
+```{r}
+sapply(trainDataset, function(x) sum(is.na(x)))
+```
+
+```{r}
+trainDataset %>% 
+  select(Pclass) %>%
+  distinct()
+```
+
+```{r}
+trainDataset %>%
+  arrange(Pclass)
+```
+
+```{r}
+trainDataset %>%
+  group_by(Pclass) %>%
+  summarize(meanFare = mean(Fare),medianFare = median(Fare))
+```
+
+```{r}
+qplot(x=Pclass,  data=trainDataset, geom="bar")
+
+```
+
+```{r}
+qplot(x=Fare,  data=trainDataset, geom="histogram")
+```
+
+```{r}
+ggplot(trainDataset, aes(Pclass, Fare)) + geom_boxplot() + ggtitle("Boxplot of Fare by Passenger Class") + xlab("CLass!!") 
+```
+
+```{r}
+ggplot(trainDataset, aes(x=Pclass, y=Fare, fill=Sex)) + geom_boxplot()  + geom_jitter(shape=16, position=position_jitter(0.2))
+```
+
+```{r}
+ggplot(trainDataset, aes(Pclass, Fare, fill=Sex)) + geom_bar(stat="summary", fun.y="median",position = "dodge")
+```
+
+```{r}
+trainDataset %>% group_by(Pclass, Sex) %>% summarise(median= median(Fare))
+```
+
+```{r}
+dtree_fit <- train(Survived ~ Pclass + Sex + Embarked + SibSp + Parch + Age, data = trainDataset, method = "rpart", na.action=na.omit)
+dtree_fit
+```
+
+```{r}
+
+prp(dtree_fit$finalModel, box.palette = "Reds")
+```
+
+
+
+```{r}
+testDataset[1,]
+```
+
+```{r}
+predict(dtree_fit, newdata = testDataset[1,])
+```
+
+```{r}
+fancyRpartPlot(dtree_fit$finalModel)
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
+```{r}
+
+```
