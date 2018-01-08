@@ -1,0 +1,260 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+# Linear regresision
+
+library(dplyr)
+library(ggplot2)
+library(caret)
+options(scipen=999)
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+íííííiAlt+I*.
+```{r}
+
+train <- read.csv("train.csv")
+train = train[ , colSums(is.na(train)) == 0]
+train <- train %>% select (-one_of("Id")) 
+#train <- train %>%   Filter(f = is.numeric)
+trainDummy <- dummyVars(formula = ~ ., data = train)
+train <- as.data.frame(predict(trainDummy, train))
+
+a <- createDataPartition(train$SalePrice, p = 0.8, list=FALSE)
+training <- train[a,]
+test <- train[-a,]
+print(dim(training))
+print(dim(test))
+
+```
+
+
+```{r}
+str(test)
+
+```
+
+```{r}
+str(training)
+
+```
+
+```{r}
+sapply(training, function(x) sum(is.na(x)))
+```
+
+
+```{r}
+
+```
+
+```{r}
+summary(training)
+```
+
+```{r}
+ggplot(training, aes(x=SalePrice)) + geom_histogram()
+```
+
+Data is roughly normal but witih a right tail 
+
+```{r}
+ggplot(training, aes(x=SalePrice)) + geom_density()
+```
+
+```{r}
+ggplot(training, aes(x= "", y=SalePrice)) + geom_boxplot()
+```
+
+```{r}
+ggplot(training, aes(x = LotArea, y = SalePrice)) + geom_point()
+```
+
+```{r}
+cor(training$GrLivArea, training$SalePrice)
+```
+
+```{r}
+columns <- ifelse(n <- sapply(training, function(x) length(levels(x))) == 1, "DROP", "NODROP")
+```
+columns
+
+
+```{r}
+formula <- SalePrice ~ .
+
+
+set.seed(123)
+fitControl <- trainControl(method = 'cv', number = 3, summaryFunction=defaultSummary)
+
+simpleModel <- train(formula,
+                 data=training,
+                 method = 'lm',
+                 trControl=fitControl,
+                 #tuneGrid=Grid,
+                 metric='RMSE',
+                 preProcess=c('scale', 'center'),
+                 maximize=FALSE)
+```
+
+```{r}
+result <- predict(simpleModel,training)
+print(postResample(result, training$SalePrice))
+
+result <- predict(simpleModel,test)
+print(postResample(result, test$SalePrice))
+```
+
+```{r}
+formula <- SalePrice ~ .
+
+
+set.seed(123)
+fitControl <- trainControl(method = 'cv', number = 3, summaryFunction=defaultSummary)
+#Grid <-  expand.grid(alpha = c(0,0.1,0.25,0.5,0.75,1), lambda = seq(0.01,3,by = 0.01))
+
+elasticNet <- train(formula,
+                 data=training,
+                 method = 'glmnet',
+                 trControl=fitControl,
+ #                tuneGrid=Grid,
+                 metric='RMSE',
+                 #preProcess=c('scale', 'center'),
+                 maximize=FALSE)
+plot(elasticNet)
+```
+
+
+
+```{r}
+elasticNet
+```
+
+```{r}
+result <- predict(elasticNet,training)
+print(postResample(result, training$SalePrice))
+
+result <- predict(elasticNet,test)
+print(postResample(result, test$SalePrice))
+```
+
+```{r}
+glmnet(training %>% select(GrLivArea), training$SalePrice )
+```
+
+
+```{r}
+formula <- SalePrice ~ LotArea + GrLivArea + BldgType + GarageCars + YrSold + YearBuilt
+
+
+set.seed(123)
+fitControl <- trainControl(method = 'cv', number = 6, summaryFunction=defaultSummary)
+Grid <- expand.grid( n.trees = seq(50,1000,50), interaction.depth = c(30), shrinkage = c(0.1), n.minobsinnode = 10)
+
+fit.gbm <- train(formula, data=train, method = 'gbm', trControl=fitControl,tuneGrid=Grid,metric='RMSE',maximize=FALSE)
+plot(fit.gbm)
+```
+
+```{r}
+plot(varImp(fit.gbm))
+```
+
+```{r}
+result <- predict(fit.gbm,train)
+postResample(result, train$SalePrice)
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
